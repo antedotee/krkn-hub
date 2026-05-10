@@ -1,0 +1,281 @@
+"""Build .docs-sync-digest/ for the krkn-hub repo.
+
+Each top-level scenario directory in krkn-hub has:
+  - env.sh             — bash defaults; we extract SCENARIO_TYPE
+  - krknctl-input.json — rich param schema (name/variable/type/default/required/description)
+
+Output:
+  - llms.txt        — human/agent index (one line per scenario)
+  - llms-full.txt   — full structured per-scenario detail with parameter tables
+  - digest.sha      — sha256 of source files for cache invalidation
+
+Pure deterministic Python — no LLM. Bit-identical output for same input.
+
+Run from the krkn-hub repo root:
+    python .docs-sync/digest/build_upstream_digest.py
+"""
+import argparse
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Iterable
+
+# Match SCENARIO_TYPE assignment in either of the two forms found in the
+# krkn-hub corpus:
+#   1. Bash-default form: export SCENARIO_TYPE=${SCENARIO_TYPE:=foo}
+#   2. Direct assignment: export SCENARIO_TYPE="foo"   (or 'foo' or unquoted)
+# Earned from inspection finding U1: form 2 was missed in initial regex.
+_SCENARIO_TYPE_RE = re.compile(
+    r"""
+    ^\s*export\s+SCENARIO_TYPE\s*=\s*
+    (?:                                # one of:
+        \$\{SCENARIO_TYPE\s*:=\s*      #   bash-default form: ${VAR:=value}
+        ['"]?                          #     optional quote
+        ([a-z][a-z0-9_]*)              #     captured value (group 1)
+        ['"]?
+        \}
+        |                              # OR
+        ['"]?                          #   direct form: ="value" / ='value' / =value
+        ([a-z][a-z0-9_]*)              #     captured value (group 2)
+        ['"]?
+        \s*$                           #   end of line (no ${...} suffix)
+    )
+    """,
+    re.VERBOSE | re.MULTILINE,
+)
+
+
+def is_scenario_dir(path: Path) -> bool:
+    """True if `path` is a scenario directory.
+
+    Heuristic: directory contains both env.sh and krknctl-input.json, and
+    is not hidden (no leading `.`).
+    """
+    if not path.is_dir():
+        return False
+    if path.name.startswith("."):
+        return False
+    return (path / "env.sh").is_file() and (path / "krknctl-input.json").is_file()
+
+
+def parse_scenario_type(env_sh_path: Path) -> str | None:
+    """Extract the SCENARIO_TYPE default from env.sh, or None if absent.
+
+    Handles both forms:
+      export SCENARIO_TYPE=${SCENARIO_TYPE:=value}   (bash-default)
+      export SCENARIO_TYPE="value"                    (direct assignment)
+    """
+    text = env_sh_path.read_text(encoding="utf-8")
+    m = _SCENARIO_TYPE_RE.search(text)
+    if not m:
+        return None
+    # group(1) is bash-default form; group(2) is direct-assignment form
+    return m.group(1) or m.group(2)
+
+
+def parse_krknctl_input(json_path: Path) -> list[dict]:
+    """Parse krknctl-input.json into a normalized parameter list.
+
+    Normalizes:
+      - `required: "true"`/`"false"` (string) → True/False (bool)
+      - Missing optional fields → empty-string defaults
+
+    Defensive: returns [] on JSON parse error rather than failing.
+    """
+    try:
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+
+    if not isinstance(data, list):
+        return []
+
+    result = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        # Normalize required: "true"/"false" → True/False
+        required_raw = entry.get("required", "false")
+        if isinstance(required_raw, bool):
+            required = required_raw
+        else:
+            required = str(required_raw).strip().lower() == "true"
+
+        result.append({
+            "name": entry.get("name", ""),
+            "short_description": entry.get("short_description", ""),
+            "description": entry.get("description", ""),
+            "variable": entry.get("variable", ""),
+            "type": entry.get("type", ""),
+            "default": entry.get("default", ""),
+            "required": required,
+        })
+    return result
+
+
+def extract_scenario_metadata(scenario_dir: Path) -> dict:
+    """Build the metadata dict for one scenario."""
+    return {
+        "name": scenario_dir.name,
+        "scenario_type": parse_scenario_type(scenario_dir / "env.sh"),
+        "parameters": parse_krknctl_input(scenario_dir / "krknctl-input.json"),
+    }
+
+
+def discover_scenarios(repo_root: Path) -> list[dict]:
+    """Walk top-level directories in repo_root and return metadata for each scenario.
+
+    Returns a list of dicts sorted by scenario name.
+    """
+    scenarios = []
+    for entry in sorted(repo_root.iterdir()):
+        if is_scenario_dir(entry):
+            scenarios.append(extract_scenario_metadata(entry))
+    return scenarios
+
+
+def render_llms_txt(scenarios: list[dict], repo_name: str) -> str:
+    """Render the index file — one line per scenario."""
+    lines = [
+        f"# {repo_name}",
+        "",
+        "> Auto-generated by .docs-sync/digest/build_upstream_digest.py.",
+        "> Do not edit by hand. Used by the docs-sync agent to detect upstream changes.",
+        "",
+        "## Scenarios",
+        "",
+    ]
+    for s in sorted(scenarios, key=lambda s: s["name"]):
+        scenario_type = s.get("scenario_type") or "(unknown)"
+        param_count = len(s.get("parameters", []))
+        lines.append(
+            f"- {s['name']} (scenario_type: {scenario_type}, "
+            f"{param_count} param{'s' if param_count != 1 else ''})"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def render_llms_full_txt(scenarios: list[dict], repo_name: str) -> str:
+    """Render the full detail file with one section per scenario."""
+    lines = [
+        f"# {repo_name} — full scenario details",
+        "",
+        "> Auto-generated. Source of truth for what each scenario configures.",
+        "",
+    ]
+
+    for s in sorted(scenarios, key=lambda s: s["name"]):
+        lines.append(f"## scenario: {s['name']}")
+        lines.append(f"scenario_type: {s.get('scenario_type') or '(unknown)'}")
+        lines.append("")
+
+        params = s.get("parameters", [])
+        if params:
+            lines.append("### parameters")
+            lines.append("")
+            lines.append("| name | variable | type | default | required | description |")
+            lines.append("| ---- | -------- | ---- | ------- | -------- | ----------- |")
+            for p in params:
+                # Escape pipes in cell content so the table doesn't break
+                def cell(v):
+                    return str(v).replace("|", "\\|").replace("\n", " ")
+                lines.append(
+                    f"| {cell(p.get('name', ''))} "
+                    f"| {cell(p.get('variable', ''))} "
+                    f"| {cell(p.get('type', ''))} "
+                    f"| {cell(p.get('default', ''))} "
+                    f"| {str(p.get('required', False)).lower()} "
+                    f"| {cell(p.get('description', ''))} |"
+                )
+            lines.append("")
+        else:
+            lines.append("(no documented parameters)")
+            lines.append("")
+
+    return "\n".join(lines) + "\n"
+
+
+def compute_digest_sha(scenario_dirs: Iterable[Path]) -> str:
+    """sha256 of all relevant source files across the scenario set.
+
+    Stable across iteration order: file paths sorted before hashing.
+    """
+    h = hashlib.sha256()
+    # Collect all relevant files
+    all_files = []
+    for d in scenario_dirs:
+        for fname in ("env.sh", "krknctl-input.json"):
+            f = d / fname
+            if f.is_file():
+                all_files.append(f)
+
+    for f in sorted(all_files, key=lambda p: str(p)):
+        # Hash both path and content so renames register as changes
+        h.update(str(f.name).encode("utf-8"))
+        h.update(b"\0")
+        h.update(f.read_bytes())
+        h.update(b"\0")
+
+    return h.hexdigest()
+
+
+def build_upstream_digest(repo_root: Path, output_dir: Path, repo_name: str) -> dict:
+    """Walk repo_root, generate llms.txt + llms-full.txt + digest.sha."""
+    scenarios = discover_scenarios(repo_root)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    llms = render_llms_txt(scenarios, repo_name)
+    full = render_llms_full_txt(scenarios, repo_name)
+
+    scenario_dirs = [
+        repo_root / s["name"] for s in scenarios
+        if (repo_root / s["name"]).is_dir()
+    ]
+    sha = compute_digest_sha(scenario_dirs)
+
+    (output_dir / "llms.txt").write_text(llms, encoding="utf-8")
+    (output_dir / "llms-full.txt").write_text(full, encoding="utf-8")
+    (output_dir / "digest.sha").write_text(sha + "\n", encoding="utf-8")
+
+    return {
+        "scenario_count": len(scenarios),
+        "digest_sha": sha,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--repo-root", type=Path, default=Path("."),
+        help="Repo root (default: current directory)",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path(".docs-sync-digest"),
+        help="Output directory (default: .docs-sync-digest)",
+    )
+    parser.add_argument(
+        "--repo-name", default="krkn-hub",
+        help="Repo name shown in headers (default: krkn-hub)",
+    )
+    args = parser.parse_args(argv)
+
+    if not args.repo_root.is_dir():
+        print(f"error: repo root not found: {args.repo_root}", file=sys.stderr)
+        return 2
+
+    result = build_upstream_digest(
+        repo_root=args.repo_root,
+        output_dir=args.output_dir,
+        repo_name=args.repo_name,
+    )
+    print(
+        f"Wrote upstream digest: {result['scenario_count']} scenarios, "
+        f"sha={result['digest_sha'][:8]}..."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

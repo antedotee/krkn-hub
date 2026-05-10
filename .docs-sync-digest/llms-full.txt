@@ -1,0 +1,401 @@
+# krkn-hub — full scenario details
+
+> Auto-generated. Source of truth for what each scenario configures.
+
+## scenario: application-outages
+scenario_type: application_outages_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | DURATION | number | 600 | false | Set chaos duration (in sec) as desired |
+| namespace | NAMESPACE | string |  | true | Namespace to target - all application routes will go inaccessible if pod selector is empty ( Required ) |
+| pod-selector | POD_SELECTOR | string |  | true | Pods to target. For example "{app: foo}" |
+| exclude-selector | EXCLUDE_LABEL | string |  | false | Pods to exclude from targetting. For example "{app: foo}" |
+| block-traffic-type | BLOCK_TRAFFIC_TYPE | string | [Ingress, Egress] | false | It can be [Ingress] or [Egress] or [Ingress, Egress] |
+
+## scenario: container-scenarios
+scenario_type: container_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string | openshift-etcd | false | Targeted namespace in the cluster |
+| label-selector | LABEL_SELECTOR | string | k8s-app=etcd | false | Label of the container(s) to target |
+| exclude-selector | EXCLUDE_LABEL | string |  | false | Pods to exclude from targetting. For example "{app: foo}" |
+| disruption-count | DISRUPTION_COUNT | number | 1 | false | Number of container to disrupt |
+| container-name | CONTAINER_NAME | string | etcd | false | Name of the container to disrupt |
+| action | ACTION | string | 1 | false | kill signal to run. For example 1 ( hang up ) or 9 |
+| expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 60 | false | Time to wait before checking if all containers that were affected recover properly |
+
+## scenario: http-load
+scenario_type: http_load_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| target-endpoints | TARGET_ENDPOINTS | string |  | true | Semicolon-separated list of target endpoints. Format: METHOD URL;METHOD URL HEADER1:VAL1,HEADER2:VAL2 BODY. Example: GET https://myapp.example.com/health;POST https://myapp.example.com/api Content-Type:application/json {"key":"value"} |
+| rate | RATE | string | 50/1s | false | Request rate per pod (e.g. 50/1s, 1000/1m, 0 for max throughput) |
+| chaos-duration | TOTAL_CHAOS_DURATION | string | 30s | false | Duration of the load test (e.g. 30s, 5m, 1h) |
+| namespace | NAMESPACE | string | default | false | The namespace where the attacker pods will be deployed |
+| number-of-pods | NUMBER_OF_PODS | number | 2 | false | The number of attacker pods that will be deployed |
+| workers | WORKERS | number | 10 | false | Initial number of concurrent workers per pod |
+| max-workers | MAX_WORKERS | number | 100 | false | Maximum number of concurrent workers per pod (auto-scales) |
+| connections | CONNECTIONS | number | 100 | false | Maximum number of idle open connections per host |
+| timeout | TIMEOUT | string | 10s | false | Per-request timeout (e.g. 10s, 30s) |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-http-load:latest | false | The container image that will be used to perform the scenario |
+| insecure | INSECURE | string | false | false | Skip TLS certificate verification (for self-signed certs) |
+| node-selectors | NODE_SELECTORS | string |  | false | The node selectors are used to guide the cluster on where to deploy attacker pods. You can specify one or more labels in the format key=value;key=value2 (even using the same key) to choose one or more node categories. If left empty, the pods will be scheduled on any available node, depending on the cluster s capacity. |
+
+## scenario: kubevirt-outage
+scenario_type: kubevirt_vm_outage
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string | default | true | Targeted namespace in the cluster |
+| vm-name | VM_NAME | string |  | true | Name of the vm to delete |
+| timeout | TIMEOUT | number | 60 | false | Time that scneario will wait for VM to come back |
+| kill-count | KILL_COUNT | number | 1 | false | Number of VMs to kill |
+
+## scenario: network-chaos
+scenario_type: network_chaos_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| traffic-type | TRAFFIC_TYPE | enum |  | true | Selects the network chaos scenario type can be ingress or egress |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn:tools | false | Network chaos helper image |
+| duration | DURATION | number | 300 | false | Duration in seconds - during with network chaos will be applied. |
+| label-selector | LABEL_SELECTOR | string | node-role.kubernetes.io/master | false | When NODE_NAME is not specified, a node with matching label_selector is selected for running. |
+| execution | EXECUTION | enum | parallel | false | Execute each of the egress option as a single scenario(parallel) or as separate scenario(serial). |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Targeted instance count matching the label selector. |
+| node-name | NODE_NAME | string |  | false | Node name to inject faults in case of targeting a specific node; Can set multiple node names separated by a comma |
+| interfaces | INTERFACES | string | [] | false | List of interface on which to apply the network restriction. eg. [eth0,eth1,eth2] |
+| egress | EGRESS | string | {bandwidth: 100mbit} | false | Dictionary of values to set network latency(latency: 50ms), packet loss(loss: 0.02), bandwidth restriction(bandwidth: 100mbit) eg. {bandwidth: 100mbit} |
+| target-node-interface | TARGET_NODE_AND_INTERFACE | string |  | false | Dictionary with key as node name(s) and value as a list of its interfaces to test. For example: {ip-10-0-216-2.us-west-2.compute.internal: [ens5]} |
+| network-params | NETWORK_PARAMS | string |  | false | latency, loss and bandwidth are the three supported network parameters to alter for the chaos test. For example: {latency: 50ms, loss: 0.02} |
+| wait-duration | WAIT_DURATION | number | 300 | false | Ensure that it is at least about twice of test_duration |
+
+## scenario: node-cpu-hog
+scenario_type: hog_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Set chaos duration (in sec) as desired |
+| cores | NODE_CPU_CORE | number |  | false | Number of cores (workers) of node CPU to be consumed |
+| cpu-percentage | NODE_CPU_PERCENTAGE | number | 50 | false | Percentage of total cpu to be consumed |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario container will be deployed |
+| node-selector | NODE_SELECTOR | string |  | false | Node selector where the scenario containers will be scheduled in the format "<selector>=<value>". NOTE:  Will be instantiated a container per each node selected with the same scenario options. If left empty a random node will be selected |
+| taints | TAINTS | string | [] | false | List of taints for which tolerations need to created. For example ["node-role.kubernetes.io/master:NoSchedule"] |
+| number-of-nodes | NUMBER_OF_NODES | number |  | false | restricts the number of selected nodes by the selector |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-hog | false | The hog container image. Can be changed if the hog image is mirrored on a private repository |
+
+## scenario: node-interface-down
+scenario_type: network_chaos_ng_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| test-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Duration in seconds the node interface(s) will be brought down |
+| node-selector | NODE_SELECTOR | string |  | false | Node selector to target nodes in the format "<selector>=<value>". A workload pod will be scheduled on each selected node. If left empty a random node will be selected |
+| node-name | NODE_NAME | string |  | false | The specific node name to target. If set, takes precedence over node-selector |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario workload pod will be deployed |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Number of nodes to target when multiple nodes match the node-selector |
+| execution | EXECUTION | enum | parallel | false | When multiple nodes are targeted, execute the scenario on all of them in parallel or serial |
+| interfaces | INTERFACES | string |  | false | Comma-separated list of network interfaces to bring down (e.g. eth0,eth1). If empty, the default interface is auto-detected |
+| recovery-time | RECOVERY_TIME | number | 0 | false | Additional time in seconds to wait after the node becomes Ready again before proceeding (allows the node to stabilize) |
+| wait-duration | WAIT_DURATION | number | 0 | false | Time in seconds to wait between scenarios when multiple scenario configs are defined in the same file |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-network-chaos:latest | false | The container image used to run the interface-down workload on the node |
+| service-account | SERVICE_ACCOUNT | string |  | false | The service account associated with the scenario workload pod |
+| taints | TAINTS | string |  | false | Comma-separated list of tolerations to assign to the workload pod so it can be scheduled on tainted nodes |
+
+## scenario: node-io-hog
+scenario_type: hog_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Set chaos duration (in sec) as desired |
+| io-block-size | IO_BLOCK_SIZE | string | 1m | false | Size of each write in bytes. Size can be from 1 byte to 4 Megabytes (allowed suffix are b,k,m) |
+| io-workers | IO_WORKERS | number | 5 | false | Number of stressor instances |
+| io-write-bytes | IO_WRITE_BYTES | string | 10m | false | string writes N bytes for each hdd process. The size can be expressed as % of free space on the file system or in units of Bytes, KBytes, MBytes and GBytes using the suffix b, k, m or g |
+| node-mount-path | NODE_MOUNT_PATH | string | /root | false | the path in the node that will be mounted in the pod and where the io hog will be executed. NOTE: be sure that kubelet has the rights to write in that node path |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario container will be deployed |
+| node-selector | NODE_SELECTOR | string |  | false | Node selector where the scenario containers will be scheduled in the format "<selector>=<value>". NOTE:  Will be instantiated a container per each node selected with the same scenario options. If left empty a random node will be selected |
+| taints | TAINTS | string | [] | false | List of taints for which tolerations need to created. For example ["node-role.kubernetes.io/master:NoSchedule"] |
+| number-of-nodes | NUMBER_OF_NODES | number |  | false | restricts the number of selected nodes by the selector |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-hog | false | The hog container image. Can be changed if the hog image is mirrored on a private repository |
+
+## scenario: node-memory-hog
+scenario_type: hog_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Set chaos duration (in sec) as desired |
+| memory-workers | NUMBER_OF_WORKERS | number | 1 | false | Total number of workers (stress-ng threads) |
+| memory-consumption | MEMORY_CONSUMPTION_PERCENTAGE | string | 90% | false | percentage (expressed with the suffix %) or amount (expressed with the suffix b, k, m or g) of memory to be consumed by the scenario |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario container will be deployed |
+| node-selector | NODE_SELECTOR | string |  | false | Node selector where the scenario containers will be scheduled in the format "<selector>=<value>". NOTE:  Will be instantiated a container per each node selected with the same scenario options. If left empty a random node will be selected |
+| taints | TAINTS | string | [] | false | List of taints for which tolerations need to created. For example ["node-role.kubernetes.io/master:NoSchedule"] |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-hog | false | The hog container image. Can be changed if the hog image is mirrored on a private repository |
+| number-of-nodes | NUMBER_OF_NODES | number |  | false | restricts the number of selected nodes by the selector |
+
+## scenario: node-network-filter
+scenario_type: network_chaos_ng_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Set chaos duration (in sec) as desired |
+| node-selector | NODE_SELECTOR | string |  | false | Node selector where the scenario containers will be scheduled in the format "<selector>=<value>". NOTE:  Will be instantiated a container per each node selected with the same scenario options. If left empty a random node will be selected |
+| node-name | NODE_NAME | string |  | false | The Node name to target (if label selector not specified) |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario container will be deployed |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Number of instances to target if more the one is selected by the NODE_SELECTOR |
+| execution | EXECUTION | enum |  | false | When multiple nodes are selected the execution on all of them can be performed in serial or in parallel |
+| ingress | INGRESS | boolean |  | true | Incoming network traffic will be filtered |
+| egress | EGRESS | boolean |  | true | Outgoing network traffic will be filtered |
+| interfaces | INTERFACES | string |  | false | Network interfaces to filter outgoing traffic (if more than one separated by comma eg. eth0,eth1,eth2) |
+| ports | PORTS | string |  | true | Network ports to filter traffic (if more than one separated by comma eg. 8080,8081,8082) |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-network-chaos:latest | false | The network chaos injection workload container image |
+| protocols | PROTOCOLS | string | tcp | false | The network protocols that will be filtered (tcp, udp or both of them comma separated) |
+| taints | TAINTS | string |  | false | The list of tolerations that can be assigned to the network filter workload (comma separated) |
+| service-account | SERVICE_ACCOUNT | string |  | false | The service account associated with the Node Network Filter workload |
+
+## scenario: node-scenarios
+scenario_type: node_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| action | ACTION | enum |  | true | action performed on the node, visit https://github.com/krkn-chaos/krkn/blob/main/docs/node_scenarios.md for more infos |
+| label-selector | LABEL_SELECTOR | string | node-role.kubernetes.io/worker | false | Node label to target |
+| exclude-label | EXCLUDE_LABEL | string |  | false | Label for excluding one or more nodes from chaos |
+| node-name | NODE_NAME | string |  | false | Node name to inject faults in case of targeting a specific node; Can set multiple node names separated by a comma |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Targeted instance count matching the label selector |
+| runs | RUNS | number | 1 | false | Iterations to perform action on a single node |
+| kube-check | KUBE_CHECK | enum | true | false | Connect to the kubernetes api to see if the node gets to a certain state during the node scenario |
+| parallel | PARALLEL | enum | false | false | Run action on label or node name in parallel or sequential, defaults to sequential (false) |
+| cloud-type | CLOUD_TYPE | enum | aws | false | Cloud platform on top of which cluster is running, supported platforms - aws, azure, gcp, vmware, ibmcloud, bm |
+| timeout | TIMEOUT | number | 180 | false | Duration to wait for completion of node scenario injection |
+| duration | DURATION | number | 120 | false | Duration to wait for completion of node scenario injection |
+| vsphere-ip | VSPHERE_IP | string |  | false | VSpere IP Address |
+| vsphere-username | VSPHERE_USERNAME | string |  | false | VSpere IP Address |
+| vsphere-password | VSPHERE_PASSWORD | string |  | false | VSpere password |
+| aws-access-key-id | AWS_ACCESS_KEY_ID | string |  | false | AWS Access Key Id |
+| aws-secret-access-key | AWS_SECRET_ACCESS_KEY | string |  | false | AWS Secret Access Key |
+| aws-default-region | AWS_DEFAULT_REGION | string |  | false | AWS default region |
+| bmc-user | BMC_USER | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc username |
+| bmc-password | BMC_PASSWORD | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc password |
+| bmc-address | BMC_ADDR | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc address |
+| disks | DISKS | string |  | false | List of disks for baremetal nodes - format: ["sda", "sdb"] |
+| ibmc-address | IBMC_URL | string |  | false | IBM Cloud URL |
+| ibmc-power-address | IBMC_POWER_URL | string |  | false | IBM Cloud Power URL |
+| ibmc-cnr | IBMC_POWER_CRN | string |  | false | IBM Cloud Power Workspace CNR |
+| ibmc-api-key | IBMC_APIKEY | string |  | false | IBM Cloud API Key |
+| disable-ssl-verification | DISABLE_SSL_VERIFICATION | enum | false | true | Disable SSL certificate verification |
+| azure-tenant | AZURE_TENANT_ID | string |  | false | Azure Tenant |
+| azure-client-secret | AZURE_CLIENT_SECRET | string |  | false | Azure Client Secret |
+| azure-client-id | AZURE_CLIENT_ID | string |  | false | Azure Client ID |
+| azure-subscription-id | AZURE_SUBSCRIPTION_ID | string |  | false | Azure Subscription ID |
+| gcp-application-credentials | GOOGLE_APPLICATION_CREDENTIALS | file |  | false | GCP application credentials file location |
+
+## scenario: node-scenarios-bm
+scenario_type: node_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| scenario-file-path | SCENARIO_BASE64 | file_base64 |  | true | The absolute path of the scenario file compiled following the documentation |
+
+## scenario: pod-network-chaos
+scenario_type: pod_network_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string |  | true | Namespace of the pod to which filter need to be applied |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn:tools | false | Network chaos helper image |
+| label-selector | LABEL_SELECTOR | string |  | false | When pod_name is not specified, pod matching the label will be selected for the chaos scenario |
+| exclude-label | EXCLUDE_LABEL | string |  | false | Label for excluding one or more pods from chaos |
+| pod-name | POD_NAME | string |  | false | When label_selector is not specified, pod matching the name will be selected for the chaos scenario |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Targeted instance count matching the label selector |
+| traffic-type | TRAFFIC_TYPE | string | [ingress,egress] | false | List of directions to apply filters - egress/ingress ( needs to be a list ) |
+| ingress-ports | INGRESS_PORTS | string | [] | false | Ingress ports to block ( needs to be a list ) |
+| egress-ports | EGRESS_PORTS | string | [] | false | Egress ports to block ( needs to be a list ) |
+| wait-duration | WAIT_DURATION | number | 300 | false | Ensure that it is at least about twice of test_duration |
+| test-duration | TEST_DURATION | number | 120 | false | Duration of the test run |
+
+## scenario: pod-network-filter
+scenario_type: network_chaos_ng_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 60 | false | Set chaos duration (in sec) as desired |
+| pod-selector | POD_SELECTOR | string |  | false | Pod selector used to target one or more pods by label |
+| pod-name | POD_NAME | string |  | false | The Pod name to target (if label selector not specified) |
+| namespace | NAMESPACE | string | default | false | Namespace where the scenario container will be deployed |
+| instance-count | INSTANCE_COUNT | number | 1 | false | Number of instances to target if more the one is selected by the POD_SELECTOR |
+| execution | EXECUTION | enum |  | false | When multiple pods are selected the execution on all of them can be performed in serial or in parallel |
+| ingress | INGRESS | boolean |  | true | Incoming network traffic will be filtered |
+| egress | EGRESS | boolean |  | true | Outgoing network traffic will be filtered |
+| interfaces | INTERFACES | string |  | false | Network interfaces to filter outgoing traffic (if more than one separated by comma eg. eth0,eth1,eth2) |
+| ports | PORTS | string |  | true | Network ports to filter traffic (if more than one separated by comma eg. 8080,8081,8082) |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-network-chaos:latest | false | The network chaos injection workload container image |
+| protocols | PROTOCOLS | string | tcp | false | The network protocols that will be filtered (tcp, udp or both of them comma separated e.g. tcp,udp) |
+| taints | TAINTS | string |  | false | The list of tolerations that can be assigned to the network filter workload (comma separated) |
+| service-account | SERVICE_ACCOUNT | string |  | false | The service account associated with the Pod Network Filter workload |
+
+## scenario: pod-scenarios
+scenario_type: pod_disruption_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string | openshift-* | false | Targeted namespace in the cluster ( supports regex ) |
+| node-names | NODE_NAMES | string |  | false | Node names to target |
+| node-label-selector | NODE_LABEL_SELECTOR | string |  | false | Label selector to target nodes |
+| pod-label | POD_LABEL | string |  | false | Label of the pod(s) to target |
+| exclude-label | EXCLUDE_LABEL | string |  | false | Label for excluding one or more pods from chaos |
+| name-pattern | NAME_PATTERN | string | .* | false | Regex pattern to match the pods in NAMESPACE when POD_LABEL is not specified |
+| disruption-count | DISRUPTION_COUNT | number | 1 | false | Number of pods to disrupt |
+| kill-timeout | KILL_TIMEOUT | number | 180 | false | Timeout to wait for the target pod(s) to be removed in seconds |
+| expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 120 | false | Fails if the pod disrupted do not recover within the timeout set |
+
+## scenario: power-outages
+scenario_type: cluster_shut_down_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| shutdown-duration | SHUTDOWN_DURATION | number | 1200 | false | Duration in seconds to shut down the cluster |
+| cloud-type | CLOUD_TYPE | enum | aws | false | Cloud platform on top of which cluster is running |
+| timeout | TIMEOUT | number | 600 | false | Time in seconds to wait for each node to be stopped or running after the cluster comes back |
+| vsphere-ip | VSPHERE_IP | string |  | false | VSpere IP Address |
+| vsphere-username | VSPHERE_USERNAME | string |  | false | VSpere IP Address |
+| vsphere-password | VSPHERE_PASSWORD | string |  | false | VSpere password |
+| aws-access-key-id | AWS_ACCESS_KEY_ID | string |  | false | AWS Access Key Id |
+| aws-secret-access-key | AWS_SECRET_ACCESS_KEY | string |  | false | AWS Secret Access Key |
+| aws-default-region | AWS_DEFAULT_REGION | string |  | false | AWS default region |
+| bmc-user | BMC_USER | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc username |
+| bmc-password | BMC_PASSWORD | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc password |
+| bmc-address | BMC_ADDR | string |  | false | Only needed for Baremetal ( bm ) - IPMI/bmc address |
+| ibmc-address | IBMC_URL | string |  | false | IBM Cloud URL |
+| ibmc-api-key | IBMC_APIKEY | string |  | false | IBM Cloud API Key |
+| azure-tenant | AZURE_TENANT_ID | string |  | false | Azure Tenant |
+| azure-client-secret | AZURE_CLIENT_SECRET | string |  | false | Azure Client Secret |
+| azure-client-id | AZURE_CLIENT_ID | string |  | false | Azure Client ID |
+| azure-subscription-id | AZURE_SUBSCRIPTION_ID | string |  | false | Azure Subscription ID |
+| gcp-application-credentials | GOOGLE_APPLICATION_CREDENTIALS | file |  | false | GCP application credentials file location |
+
+## scenario: pvc-scenario
+scenario_type: pvc_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| pvc-name | PVC_NAME | string |  | false | Targeted PersistentVolumeClaim in the cluster (if null, POD_NAME is required) |
+| pod-name | POD_NAME | string |  | false | Targeted pod in the cluster (if null, PVC_NAME is required) |
+| namespace | NAMESPACE | string |  | true | Targeted namespace in the cluster (required) |
+| fill-percentage | FILL_PERCENTAGE | number | 50 | false | Targeted percentage to be filled up in the PVC |
+| duration | DURATION | number | 60 | false | Duration in seconds with the PVC filled up |
+
+## scenario: rollback
+scenario_type: (unknown)
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| run-uuid | RUN_UUID | string |  | true | Krkn Run UUID that needs to be rolled back. |
+
+## scenario: service-disruption-scenarios
+scenario_type: service_disruption_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string | openshift-etcd | false | Targeted namespace in the cluster (required) |
+| label-selector | LABEL_SELECTOR | string |  | false | Label of the namespace to target. Set this parameter only if NAMESPACE is not set |
+| delete-count | DELETE_COUNT | number | 1 | false | Number of namespaces to kill in each run, based on matching namespace and label specified |
+| runs | RUNS | number | 1 | false | Number of runs to execute the action |
+
+## scenario: service-hijacking
+scenario_type: service_hijacking_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| scenario-file-path | SCENARIO_BASE64 | file_base64 |  | true | The absolute path of the scenario file compiled following the documentation |
+
+## scenario: syn-flood
+scenario_type: syn_flood_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| packet-size | PACKET_SIZE | number | 120 | false | The size in bytes of the SYN packet |
+| window-size | WINDOW_SIZE | number | 64 | false | The TCP window size between packets in bytes |
+| chaos-duration | TOTAL_CHAOS_DURATION | number | 120 | false | The number of seconds the chaos will last |
+| namespace | NAMESPACE | string | default | false | The namespace containing the target service and where the attacker pods will be deployed |
+| target-service | TARGET_SERVICE | string |  | false | The service name (or the hostname/IP address in case an external target will be hit) that will be affected by the attack.Must be empty if TARGET_SERVICE_LABEL will be set |
+| target-port | TARGET_PORT | number |  | true | The TCP port that will be targeted by the attack |
+| target-service-label | TARGET_SERVICE_LABEL | string |  | false | The label that will be used to select one or more services.Must be left empty if TARGET_SERVICE variable is set |
+| number-of-pods | NUMBER_OF_PODS | number | 2 | false | The number of attacker pods that will be deployed |
+| image | IMAGE | string | quay.io/krkn-chaos/krkn-syn-flood:latest | false | The container image that will be used to perform the scenario |
+| node-selectors | NODE_SELECTORS | string |  | false | The node selectors are used to guide the cluster on where to deploy attacker pods. You can specify one or more labels in the format key=value;key=value2 (even using the same key) to choose one or more node categories. If left empty, the pods will be scheduled on any available node, depending on the cluster s capacity. |
+
+## scenario: time-scenarios
+scenario_type: time_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| object-type | OBJECT_TYPE | enum | pod | false | Object to target. Supported options: pod, node |
+| label-selector | LABEL_SELECTOR | string | k8s-app=etcd | false | Label of the container(s) or nodes to target |
+| action | ACTION | enum | skew_date | false | Action to run. Supported actions: skew_time, skew_date |
+| object-names | OBJECT_NAME | string | [] | false | List of the names of pods or nodes you want to skew |
+| container-name | CONTAINER_NAME | string |  | false | Container in the specified pod to target in case the pod has multiple containers running. Random container is picked if empty |
+| namespace | NAMESPACE | string |  | false | Namespace of the pods you want to skew, need to be set only if setting a specific pod name |
+
+## scenario: zone-outages
+scenario_type: zone_outages_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| cloud-type | CLOUD_TYPE | enum | aws | false | Cloud platform on top of which cluster is running |
+| duration | DURATION | number | 600 | false | Duration in seconds after which the zone will be back online |
+| vpc-id | VPC_ID | string |  | false | cluster virtual private network to target |
+| subnet-id | SUBNET_ID | string |  | false | subnet-id to deny both ingress and egress traffic ( REQUIRED ). Format: [subnet1, subnet2] |
+| aws-access-key-id | AWS_ACCESS_KEY_ID | string |  | false | AWS Access Key Id |
+| aws-secret-access-key | AWS_SECRET_ACCESS_KEY | string |  | false | AWS Secret Access Key |
+| aws-default-region | AWS_DEFAULT_REGION | string |  | false | AWS default region |
+| zone | ZONE | string |  | false | cluster zone to target |
+| gcp-application-credentials | GOOGLE_APPLICATION_CREDENTIALS | file |  | false | GCP application credentials file location |
+
