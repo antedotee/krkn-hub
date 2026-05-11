@@ -72,15 +72,6 @@
         "required": "false"
     },
     {
-        "name": "expected-recovery-time",
-        "short_description": "Expected recovery time",
-        "description": "Fails if the pod disrupted do not recover within the timeout set",
-        "variable": "EXPECTED_RECOVERY_TIME",
-        "type": "number",
-        "default": "120",
-        "required": "false"
-    },
-    {
         "name": "smoke-test-flag",
         "short_description": "Smoke-test only",
         "description": "Auto-added by smoke-test plan A1 to verify docs PR opens cleanly; safe to revert after smoke test.",
