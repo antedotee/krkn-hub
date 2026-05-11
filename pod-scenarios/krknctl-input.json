@@ -79,5 +79,14 @@
         "type":"number",
         "default":"120",
         "required":"false"
+    },
+    {
+        "name":"smoke-test-flag",
+        "short_description":"Smoke-test only",
+        "description":"Auto-added by smoke-test plan A1 to verify docs PR opens cleanly; safe to revert after smoke test.",
+        "variable":"SMOKE_TEST_FLAG",
+        "type":"string",
+        "default":"remove-me",
+        "required":"false"
     }
 ]
