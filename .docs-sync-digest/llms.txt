@@ -19,7 +19,7 @@
 - node-scenarios-bm (scenario_type: node_scenarios, 1 param)
 - pod-network-chaos (scenario_type: pod_network_scenarios, 11 params)
 - pod-network-filter (scenario_type: network_chaos_ng_scenarios, 14 params)
-- pod-scenarios (scenario_type: pod_disruption_scenarios, 9 params)
+- pod-scenarios (scenario_type: pod_disruption_scenarios, 10 params)
 - power-outages (scenario_type: cluster_shut_down_scenarios, 19 params)
 - pvc-scenario (scenario_type: pvc_scenarios, 5 params)
 - rollback (scenario_type: (unknown), 1 param)

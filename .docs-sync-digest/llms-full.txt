@@ -279,6 +279,7 @@ scenario_type: pod_disruption_scenarios
 | disruption-count | DISRUPTION_COUNT | number | 1 | false | Number of pods to disrupt |
 | kill-timeout | KILL_TIMEOUT | number | 180 | false | Timeout to wait for the target pod(s) to be removed in seconds |
 | expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 120 | false | Fails if the pod disrupted do not recover within the timeout set |
+| smoke-test-flag | SMOKE_TEST_FLAG | string | remove-me | false | Auto-added by smoke-test plan A1 to verify docs PR opens cleanly; safe to revert after smoke test. |
 
 ## scenario: power-outages
 scenario_type: cluster_shut_down_scenarios
