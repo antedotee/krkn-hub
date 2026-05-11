@@ -10,3 +10,5 @@ export CONTAINER_NAME=${CONTAINER_NAME:=etcd}
 export ACTION=${ACTION:=1}
 export SCENARIO_TYPE=${SCENARIO_TYPE:=container_scenarios}
 export SCENARIO_FILE=${SCENARIO_FILE:=scenarios/container_scenario.yaml}
+
+export SMOKE_A4_PARAM=${SMOKE_A4_PARAM:="default-a4"}

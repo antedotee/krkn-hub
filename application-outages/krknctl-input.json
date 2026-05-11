@@ -46,5 +46,14 @@
         "validation_message": "Block traffic direction can be [Ingress] or [Egress] or [Ingress, Egress]",
         "default": "[Ingress, Egress]",
         "required": "false"
+    },
+    {
+        "name": "smoke-a4-param",
+        "short_description": "Smoke A4 param",
+        "description": "Auto-added across 3 scenarios by docs-sync matrix A4; tests STATE.md handoff.",
+        "variable": "SMOKE_A4_PARAM",
+        "type": "string",
+        "default": "default-a4",
+        "required": "false"
     }
 ]

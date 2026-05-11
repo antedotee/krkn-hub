@@ -8,3 +8,5 @@ export EXCLUDE_LABEL=${EXCLUDE_LABEL:""}
 export BLOCK_TRAFFIC_TYPE=${BLOCK_TRAFFIC_TYPE:=- Ingress}
 export SCENARIO_TYPE=${SCENARIO_TYPE:=application_outages_scenarios}
 export SCENARIO_FILE=${SCENARIO_FILE:=scenarios/app_outage.yaml}
+
+export SMOKE_A4_PARAM=${SMOKE_A4_PARAM:="default-a4"}
