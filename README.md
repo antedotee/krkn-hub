@@ -61,3 +61,5 @@ Refer to the 2 docs below to be able to test your own images with any changes an
 
 - [Testing Your Changes](docs/test_your_changes.md)
 - [Contribute](docs/contribute.md) -->
+
+<!-- smoke-test N1: README-only edit; relevance gate must skip. -->
