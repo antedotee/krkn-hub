@@ -290,7 +290,6 @@ scenario_type: pod_disruption_scenarios
 | name-pattern | NAME_PATTERN | string | .* | false | Regex pattern to match the pods in NAMESPACE when POD_LABEL is not specified |
 | disruption-count | DISRUPTION_COUNT | number | 2 | false | Number of pods to disrupt |
 | kill-timeout | KILL_TIMEOUT | number | 180 | false | Timeout to wait for the target pod(s) to be removed in seconds |
-| expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 120 | false | Fails if the pod disrupted do not recover within the timeout set |
 | smoke-test-flag | SMOKE_TEST_FLAG | string | remove-me | false | Auto-added by smoke-test plan A1 to verify docs PR opens cleanly; safe to revert after smoke test. |
 
 ## scenario: power-outages
