@@ -5,8 +5,9 @@
 
 ## Scenarios
 
-- application-outages (scenario_type: application_outages_scenarios, 5 params)
-- container-scenarios (scenario_type: container_scenarios, 7 params)
+- application-outages (scenario_type: application_outages_scenarios, 6 params)
+- container-scenarios (scenario_type: container_scenarios, 8 params)
+- dummy-disruption (scenario_type: dummy_disruption_scenarios, 2 params)
 - http-load (scenario_type: http_load_scenarios, 12 params)
 - kubevirt-outage (scenario_type: kubevirt_vm_outage, 4 params)
 - network-chaos (scenario_type: network_chaos_scenarios, 12 params)
@@ -21,7 +22,7 @@
 - pod-network-filter (scenario_type: network_chaos_ng_scenarios, 14 params)
 - pod-scenarios (scenario_type: pod_disruption_scenarios, 10 params)
 - power-outages (scenario_type: cluster_shut_down_scenarios, 19 params)
-- pvc-scenario (scenario_type: pvc_scenarios, 5 params)
+- pvc-scenario (scenario_type: pvc_scenarios, 6 params)
 - rollback (scenario_type: (unknown), 1 param)
 - service-disruption-scenarios (scenario_type: service_disruption_scenarios, 4 params)
 - service-hijacking (scenario_type: service_hijacking_scenarios, 1 param)

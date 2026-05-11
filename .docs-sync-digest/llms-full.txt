@@ -14,6 +14,7 @@ scenario_type: application_outages_scenarios
 | pod-selector | POD_SELECTOR | string |  | true | Pods to target. For example "{app: foo}" |
 | exclude-selector | EXCLUDE_LABEL | string |  | false | Pods to exclude from targetting. For example "{app: foo}" |
 | block-traffic-type | BLOCK_TRAFFIC_TYPE | string | [Ingress, Egress] | false | It can be [Ingress] or [Egress] or [Ingress, Egress] |
+| smoke-a4-param | SMOKE_A4_PARAM | string | default-a4 | false | Auto-added across 3 scenarios by docs-sync matrix A4; tests STATE.md handoff. |
 
 ## scenario: container-scenarios
 scenario_type: container_scenarios
@@ -29,6 +30,17 @@ scenario_type: container_scenarios
 | container-name | CONTAINER_NAME | string | etcd | false | Name of the container to disrupt |
 | action | ACTION | string | 1 | false | kill signal to run. For example 1 ( hang up ) or 9 |
 | expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 60 | false | Time to wait before checking if all containers that were affected recover properly |
+| smoke-a4-param | SMOKE_A4_PARAM | string | default-a4 | false | Auto-added across 3 scenarios by docs-sync matrix A4; tests STATE.md handoff. |
+
+## scenario: dummy-disruption
+scenario_type: dummy_disruption_scenarios
+
+### parameters
+
+| name | variable | type | default | required | description |
+| ---- | -------- | ---- | ------- | -------- | ----------- |
+| namespace | NAMESPACE | string | default | true | Namespace to inject the dummy disruption into (supports regex). |
+| duration | DURATION | number | 60 | false | How long the disruption should last. |
 
 ## scenario: http-load
 scenario_type: http_load_scenarios
@@ -276,7 +288,7 @@ scenario_type: pod_disruption_scenarios
 | pod-label | POD_LABEL | string |  | false | Label of the pod(s) to target |
 | exclude-label | EXCLUDE_LABEL | string |  | false | Label for excluding one or more pods from chaos |
 | name-pattern | NAME_PATTERN | string | .* | false | Regex pattern to match the pods in NAMESPACE when POD_LABEL is not specified |
-| disruption-count | DISRUPTION_COUNT | number | 1 | false | Number of pods to disrupt |
+| disruption-count | DISRUPTION_COUNT | number | 2 | false | Number of pods to disrupt |
 | kill-timeout | KILL_TIMEOUT | number | 180 | false | Timeout to wait for the target pod(s) to be removed in seconds |
 | expected-recovery-time | EXPECTED_RECOVERY_TIME | number | 120 | false | Fails if the pod disrupted do not recover within the timeout set |
 | smoke-test-flag | SMOKE_TEST_FLAG | string | remove-me | false | Auto-added by smoke-test plan A1 to verify docs PR opens cleanly; safe to revert after smoke test. |
@@ -320,6 +332,7 @@ scenario_type: pvc_scenarios
 | namespace | NAMESPACE | string |  | true | Targeted namespace in the cluster (required) |
 | fill-percentage | FILL_PERCENTAGE | number | 50 | false | Targeted percentage to be filled up in the PVC |
 | duration | DURATION | number | 60 | false | Duration in seconds with the PVC filled up |
+| smoke-a4-param | SMOKE_A4_PARAM | string | default-a4 | false | Auto-added across 3 scenarios by docs-sync matrix A4; tests STATE.md handoff. |
 
 ## scenario: rollback
 scenario_type: (unknown)
