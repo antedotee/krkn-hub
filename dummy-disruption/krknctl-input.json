@@ -1,0 +1,20 @@
+[
+    {
+        "name": "namespace",
+        "short_description": "Target namespace",
+        "description": "Namespace to inject the dummy disruption into (supports regex).",
+        "variable": "NAMESPACE",
+        "type": "string",
+        "default": "default",
+        "required": "true"
+    },
+    {
+        "name": "duration",
+        "short_description": "Duration in seconds",
+        "description": "How long the disruption should last.",
+        "variable": "DURATION",
+        "type": "number",
+        "default": "60",
+        "required": "false"
+    }
+]
