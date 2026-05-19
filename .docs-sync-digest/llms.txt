@@ -11,7 +11,7 @@
 - http-load (scenario_type: http_load_scenarios, 12 params)
 - kubevirt-outage (scenario_type: kubevirt_vm_outage, 4 params)
 - network-chaos (scenario_type: network_chaos_scenarios, 12 params)
-- node-cpu-hog (scenario_type: hog_scenarios, 8 params)
+- node-cpu-hog (scenario_type: hog_scenarios, 9 params)
 - node-interface-down (scenario_type: network_chaos_ng_scenarios, 12 params)
 - node-io-hog (scenario_type: hog_scenarios, 10 params)
 - node-memory-hog (scenario_type: hog_scenarios, 8 params)

@@ -109,6 +109,7 @@ scenario_type: hog_scenarios
 | taints | TAINTS | string | [] | false | List of taints for which tolerations need to created. For example ["node-role.kubernetes.io/master:NoSchedule"] |
 | number-of-nodes | NUMBER_OF_NODES | number |  | false | restricts the number of selected nodes by the selector |
 | image | IMAGE | string | quay.io/krkn-chaos/krkn-hog | false | The hog container image. Can be changed if the hog image is mirrored on a private repository |
+| warmup-duration | CPU_WARMUP_DURATION | number | 10 | false | Seconds to ramp up CPU load before reaching the target percentage. Helps avoid sudden load spikes when the scenario starts. |
 
 ## scenario: node-interface-down
 scenario_type: network_chaos_ng_scenarios
