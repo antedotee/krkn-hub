@@ -66,6 +66,15 @@
          "type":"string",
          "default":"quay.io/krkn-chaos/krkn-hog",
          "required": "false"
+     },
+     {
+        "name":"warmup-duration",
+        "short_description":"Warmup duration",
+        "description":"Seconds to ramp up CPU load before reaching the target percentage. Helps avoid sudden load spikes when the scenario starts.",
+        "variable":"CPU_WARMUP_DURATION",
+        "type":"number",
+        "default":"10",
+        "required":"false"
      }
 
 ]
