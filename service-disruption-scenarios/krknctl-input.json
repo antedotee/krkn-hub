@@ -34,5 +34,14 @@
         "type":"number",
         "default":"1",
         "required":"false"
+    },
+    {
+        "name":"wait-duration",
+        "short_description":"Wait duration",
+        "description":"Seconds to wait between each run when runs > 1. Lets dependent resources stabilize before the next disruption.",
+        "variable":"WAIT_DURATION",
+        "type":"number",
+        "default":"30",
+        "required":"false"
     }
 ]
