@@ -354,6 +354,7 @@ scenario_type: service_disruption_scenarios
 | label-selector | LABEL_SELECTOR | string |  | false | Label of the namespace to target. Set this parameter only if NAMESPACE is not set |
 | delete-count | DELETE_COUNT | number | 1 | false | Number of namespaces to kill in each run, based on matching namespace and label specified |
 | runs | RUNS | number | 1 | false | Number of runs to execute the action |
+| wait-duration | WAIT_DURATION | number | 30 | false | Seconds to wait between each run when runs > 1. Lets dependent resources stabilize before the next disruption. |
 
 ## scenario: service-hijacking
 scenario_type: service_hijacking_scenarios
